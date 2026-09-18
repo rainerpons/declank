@@ -22,15 +22,19 @@ export interface FilterSettings {
   mediaOnly: MediaOnlyFilterSettings;
 }
 
+export type ThemePreference = "system" | "light" | "dark";
+
 export interface ExtensionSettings {
   enabled: boolean;
   debug: boolean;
+  theme: ThemePreference;
   filters: FilterSettings;
 }
 
 export const DEFAULT_SETTINGS: ExtensionSettings = {
   enabled: true,
   debug: false,
+  theme: "system",
   filters: {
     accountAge: {
       enabled: true,

@@ -30,7 +30,7 @@ export function Switch({
         focus-visible:ring-2 focus-visible:ring-blue-500
         focus-visible:ring-offset-2
         disabled:cursor-not-allowed disabled:opacity-50
-        ${checked ? "bg-blue-600" : "bg-gray-200"}
+        ${checked ? "bg-blue-600" : "bg-gray-200 dark:bg-slate-700"}
       `}
     >
       <span
