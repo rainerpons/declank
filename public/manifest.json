@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "Declank",
+  "version": "0.1.0",
+  "description": "Automatically collapse selected comments on old Reddit according to configurable filters.",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://old.reddit.com/*",
+    "https://www.reddit.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://old.reddit.com/*",
+        "https://www.reddit.com/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "options_page": "src/options/options.html",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
