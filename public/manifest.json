@@ -16,8 +16,14 @@
         "https://old.reddit.com/*",
         "https://www.reddit.com/*"
       ],
-      "js": ["content.js"],
+      "js": ["content-loader.js"],
       "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["content.js", "chunks/*"],
+      "matches": ["https://old.reddit.com/*", "https://www.reddit.com/*"]
     }
   ],
   "background": {
