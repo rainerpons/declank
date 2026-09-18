@@ -1,6 +1,42 @@
-import { loadSettings } from "@/services/settingsService";
+import { loadSettings, onSettingsChanged } from "@/services/settingsService";
+import { ExtensionSettings } from "@/models/settings";
 import { setDebugEnabled, log, error } from "@/utils/logger";
 import { scanComments, scanCommentElements } from "./redditScanner";
+
+let currentSettings: ExtensionSettings;
+let observer: MutationObserver | null = null;
+let isObserving = false;
+
+function startObserver() {
+  if (isObserving || !observer) return;
+  const commentArea = document.querySelector(".sitetable.nestedlisting") || document.body;
+  observer.observe(commentArea, { childList: true, subtree: true });
+  isObserving = true;
+}
+
+function stopObserver() {
+  if (!isObserving || !observer) return;
+  observer.disconnect();
+  isObserving = false;
+}
+
+function handleSettingsChange(newSettings: ExtensionSettings) {
+  const wasEnabled = currentSettings.enabled;
+  currentSettings = newSettings;
+  setDebugEnabled(currentSettings.debug);
+
+  if (wasEnabled && !currentSettings.enabled) {
+    // Transition: enabled -> disabled
+    stopObserver();
+    console.log("[Declank] Disabled");
+  } else if (!wasEnabled && currentSettings.enabled) {
+    // Transition: disabled -> enabled
+    startObserver();
+    // Scan immediately to catch any comments that loaded while disabled
+    scanComments(currentSettings).catch(err => error("Error scanning on enable:", err));
+    console.log("[Declank] Enabled");
+  }
+}
 
 async function main(): Promise<void> {
   if (
@@ -18,31 +54,19 @@ async function main(): Promise<void> {
   console.log(`[Declank] Initialized on ${window.location.hostname}`);
 
   try {
-    const settings = await loadSettings();
-    setDebugEnabled(settings.debug);
+    currentSettings = await loadSettings();
+    setDebugEnabled(currentSettings.debug);
 
-    if (!settings.enabled) {
-      log("Extension is disabled, skipping");
-      return;
-    }
-
-    // Initial scan
-    await scanComments(settings);
-
-    // Observe for dynamically loaded comments
-    const observer = new MutationObserver((mutations) => {
+    // Initialize the observer once
+    observer = new MutationObserver((mutations) => {
       const newComments: HTMLElement[] = [];
-      
       for (const mutation of mutations) {
         if (mutation.type !== "childList") continue;
-        
         for (const node of mutation.addedNodes) {
           if (node instanceof HTMLElement) {
-            // The added node itself might be a comment
             if (node.classList.contains("comment")) {
               newComments.push(node);
             }
-            // Or it might contain comments
             const descendants = node.querySelectorAll<HTMLElement>(".comment");
             for (const desc of descendants) {
               newComments.push(desc);
@@ -53,7 +77,7 @@ async function main(): Promise<void> {
 
       if (newComments.length > 0) {
         log(`Newly loaded comments discovered: ${newComments.length}`);
-        scanCommentElements(newComments, settings).then((result) => {
+        scanCommentElements(newComments, currentSettings).then((result) => {
           if (result.processedComments > 0) {
             log(`Processed ${result.processedComments} new comments, collapsed ${result.collapsedComments}`);
           }
@@ -61,8 +85,16 @@ async function main(): Promise<void> {
       }
     });
 
-    const commentArea = document.querySelector(".sitetable.nestedlisting") || document.body;
-    observer.observe(commentArea, { childList: true, subtree: true });
+    onSettingsChanged(() => {
+      // Re-load full settings to ensure deep merge defaults are present
+      // Alternatively, we could just use the value directly, but this is safer
+      loadSettings().then(handleSettingsChange);
+    });
+
+    if (currentSettings.enabled) {
+      startObserver();
+      await scanComments(currentSettings);
+    }
 
   } catch (err) {
     error("Declank encountered an error:", err);
