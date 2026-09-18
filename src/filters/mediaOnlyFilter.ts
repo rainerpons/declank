@@ -1,6 +1,6 @@
 import { CommentFilter } from "@/filters/types";
 import { CommentContext } from "@/models/comment";
-import { log } from "@/utils/logger";
+
 
 /** Media-hosting domains whose URLs should not count as meaningful text */
 const MEDIA_URL_PATTERNS: RegExp[] = [
@@ -86,11 +86,7 @@ export function createMediaOnlyFilter(enabled: boolean): CommentFilter {
     enabled,
     requiredData: ["commentText", "media"],
     matches(context: CommentContext): boolean {
-      const result = context.isMediaOnly;
-      if (result) {
-        log(`Media-only match for comment by ${context.username}`);
-      }
-      return result;
+      return context.isMediaOnly;
     },
   };
 }

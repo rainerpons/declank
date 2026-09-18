@@ -2,31 +2,7 @@ import { collapseComment, hasCollapsedAncestor } from "@/content/commentCollapse
 
 describe("commentCollapser", () => {
   describe("collapseComment", () => {
-    it("finds and clicks the expand button", () => {
-      const comment = document.createElement("div");
-      comment.className = "comment noncollapsed";
-      
-      const entry = document.createElement("div");
-      entry.className = "entry";
-      
-      const tagline = document.createElement("div");
-      tagline.className = "tagline";
-      
-      const btn = document.createElement("div");
-      btn.className = "expand";
-      const spy = vi.fn();
-      btn.addEventListener("click", spy);
-      
-      tagline.appendChild(btn);
-      entry.appendChild(tagline);
-      comment.appendChild(entry);
-
-      const result = collapseComment(comment, "test");
-      expect(result).toBe(true);
-      expect(spy).toHaveBeenCalled();
-    });
-
-    it("falls back to class toggle when no expand button", () => {
+    it("toggles the collapsed and noncollapsed classes", () => {
       const comment = document.createElement("div");
       comment.className = "comment noncollapsed";
 

@@ -60,7 +60,6 @@ export function parseAccountResponse(
     record.createdUtc = data.created_utc;
   }
 
-  log(`Parsed account ${username}: status=${status}, createdUtc=${record.createdUtc ?? "N/A"}`);
   return record;
 }
 
@@ -68,7 +67,6 @@ export async function fetchAccount(
   username: string
 ): Promise<AccountRecord | null> {
   const url = REDDIT_ABOUT_URL(username);
-  log(`Fetching account data for ${username}`);
   const result = await limitedFetch(url);
   return parseAccountResponse(username, result);
 }

@@ -16,27 +16,11 @@ export function collapseComment(
     return false;
   }
 
-  // Method 1: Try to find and click the native expand/collapse toggle
-  const entry = comment.querySelector<HTMLElement>(":scope > .entry");
-  if (entry) {
-    const expandButton = entry.querySelector<HTMLElement>(
-      ".tagline .expand"
-    );
-    if (expandButton) {
-      expandButton.click();
-      log(`Collapsed comment (native click): ${reason}`);
-      return true;
-    }
-  }
-
-  // Method 2: Fallback — toggle the collapsed class directly
-  // This mimics old Reddit's behavior
+  // Toggle classes to natively collapse the comment
   comment.classList.add("collapsed");
-
-  // Old Reddit also adds a .collapsed class and toggles noncollapsed
   comment.classList.remove("noncollapsed");
 
-  log(`Collapsed comment (class toggle): ${reason}`);
+  log(`Collapsed comment (${reason})`);
   return true;
 }
 

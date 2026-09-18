@@ -62,14 +62,12 @@ export async function resolveAccount(
   // L1: Page cache
   const memoryCached = pageCache.get(username);
   if (memoryCached) {
-    log(`Page cache hit for ${username}`);
     return memoryCached;
   }
 
   // Deduplicate concurrent lookups
   const pending = pendingLookups.get(username);
   if (pending) {
-    log(`Joining pending lookup for ${username}`);
     return pending;
   }
 
@@ -77,13 +75,11 @@ export async function resolveAccount(
     // L2: Persistent cache
     const persistentCached = await getFromPersistentCache(username);
     if (persistentCached) {
-      log(`Persistent cache hit for ${username}`);
       pageCache.set(username, persistentCached);
       return persistentCached;
     }
 
     // L3: Network
-    log(`Cache miss for ${username}, fetching from Reddit`);
     const record = await fetchAccount(username);
     if (record) {
       pageCache.set(username, record);

@@ -1,7 +1,7 @@
 import { CommentFilter, RequiredData } from "@/filters/types";
 import { CommentContext } from "@/models/comment";
 import { ExtensionSettings } from "@/models/settings";
-import { log } from "@/utils/logger";
+
 import { createAccountAgeFilter } from "./accountAgeFilter";
 import { createGeneratedUsernameFilter } from "./generatedUsernameFilter";
 import { createMediaOnlyFilter } from "./mediaOnlyFilter";
@@ -81,9 +81,6 @@ export function evaluateComment(
   // Evaluate local filters first (no network dependency)
   for (const filter of localFilters) {
     if (filter.matches(context)) {
-      log(
-        `Comment by ${context.username} matched filter: ${filter.id}`
-      );
       return filter.id;
     }
   }
@@ -91,9 +88,6 @@ export function evaluateComment(
   // Evaluate account filters only if account data was resolved
   for (const filter of accountFilters) {
     if (filter.matches(context)) {
-      log(
-        `Comment by ${context.username} matched filter: ${filter.id}`
-      );
       return filter.id;
     }
   }

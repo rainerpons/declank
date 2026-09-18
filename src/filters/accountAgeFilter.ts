@@ -1,7 +1,7 @@
 import { CommentFilter } from "@/filters/types";
 import { CommentContext } from "@/models/comment";
 import { TimeUnit } from "@/models/settings";
-import { log } from "@/utils/logger";
+
 
 /**
  * Calculate the cutoff date by subtracting the threshold from now.
@@ -57,17 +57,11 @@ export function createAccountAgeFilter(
     enabled,
     requiredData: ["accountMetadata"],
     matches(context: CommentContext): boolean {
-      const result = isAccountYoungerThan(
+      return isAccountYoungerThan(
         context.account?.createdUtc,
         thresholdValue,
         thresholdUnit
       );
-      if (result) {
-        log(
-          `Account age match: ${context.username} (created: ${context.account?.createdUtc})`
-        );
-      }
-      return result;
     },
   };
 }

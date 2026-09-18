@@ -1,9 +1,8 @@
 import { loadSettings } from "@/services/settingsService";
 import { setDebugEnabled, log, error } from "@/utils/logger";
-import { scanComments } from "./redditScanner";
+import { scanComments, scanCommentElements } from "./redditScanner";
 
 async function main(): Promise<void> {
-  // Defensive hostname check
   if (
     window.location.hostname !== "old.reddit.com" &&
     window.location.hostname !== "www.reddit.com"
@@ -11,13 +10,10 @@ async function main(): Promise<void> {
     return;
   }
 
-  // Always log startup to console unconditionally so users can verify it runs
   console.log(`[Declank] Extension started on ${window.location.hostname}`);
 
-  // Ensure this is actually old Reddit
   const isOldReddit = document.querySelector("#header-bottom-left") !== null;
   if (!isOldReddit) {
-    console.log("[Declank] Not an old Reddit page structure, skipping");
     return;
   }
 
@@ -25,15 +21,51 @@ async function main(): Promise<void> {
     const settings = await loadSettings();
     setDebugEnabled(settings.debug);
 
-    log("Declank initialized with settings:", settings);
+    log("Declank initialized");
 
     if (!settings.enabled) {
       log("Extension is disabled, skipping");
       return;
     }
 
-    const result = await scanComments(settings);
-    log("Scan result:", result);
+    // Initial scan
+    await scanComments(settings);
+
+    // Observe for dynamically loaded comments
+    const observer = new MutationObserver((mutations) => {
+      const newComments: HTMLElement[] = [];
+      
+      for (const mutation of mutations) {
+        if (mutation.type !== "childList") continue;
+        
+        for (const node of mutation.addedNodes) {
+          if (node instanceof HTMLElement) {
+            // The added node itself might be a comment
+            if (node.classList.contains("comment")) {
+              newComments.push(node);
+            }
+            // Or it might contain comments
+            const descendants = node.querySelectorAll<HTMLElement>(".comment");
+            for (const desc of descendants) {
+              newComments.push(desc);
+            }
+          }
+        }
+      }
+
+      if (newComments.length > 0) {
+        log(`Newly loaded comments discovered: ${newComments.length}`);
+        scanCommentElements(newComments, settings).then((result) => {
+          if (result.processedComments > 0) {
+            log(`Processed ${result.processedComments} new comments, collapsed ${result.collapsedComments}`);
+          }
+        }).catch(err => error("Error scanning new comments:", err));
+      }
+    });
+
+    const commentArea = document.querySelector(".sitetable.nestedlisting") || document.body;
+    observer.observe(commentArea, { childList: true, subtree: true });
+
   } catch (err) {
     error("Declank encountered an error:", err);
   }

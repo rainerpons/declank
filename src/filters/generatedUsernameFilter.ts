@@ -1,6 +1,6 @@
 import { CommentFilter } from "@/filters/types";
 import { CommentContext } from "@/models/comment";
-import { log } from "@/utils/logger";
+
 
 const KNOWN_NON_GENERATED = new Set([
   "automoderator",
@@ -9,8 +9,8 @@ const KNOWN_NON_GENERATED = new Set([
 ]);
 
 const PASCAL_CASE_PATTERN = /^(?:[A-Z][a-z]+){2,}\d{1,5}$/;
-const UNDERSCORE_PATTERN = /^[A-Z][a-z]+(?:_[A-Z][a-z]+)+_\d{1,5}$/;
-const HYPHEN_PATTERN = /^[A-Z][a-z]+(?:-[A-Z][a-z]+)+-\d{1,5}$/;
+const UNDERSCORE_PATTERN = /^[A-Z][a-z]+(?:_[A-Z][a-z]+)+_?\d{1,5}$/;
+const HYPHEN_PATTERN = /^[A-Z][a-z]+(?:-[A-Z][a-z]+)+-?\d{1,5}$/;
 
 /**
  * Tests whether a username matches common Reddit auto-generated patterns.
@@ -42,11 +42,7 @@ export function createGeneratedUsernameFilter(
     enabled,
     requiredData: ["username"],
     matches(context: CommentContext): boolean {
-      const result = isGeneratedUsername(context.username);
-      if (result) {
-        log(`Generated username match: ${context.username}`);
-      }
-      return result;
+      return isGeneratedUsername(context.username);
     },
   };
 }

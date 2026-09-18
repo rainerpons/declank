@@ -12,6 +12,11 @@ describe("generatedUsernameFilter", () => {
       expect(isGeneratedUsername("Capital-Factor-382")).toBe(true);
       expect(isGeneratedUsername("Bright-Lemon-42")).toBe(true);
       expect(isGeneratedUsername("Red-Green-Blue-99")).toBe(true);
+      // Tests for optional separators
+      expect(isGeneratedUsername("Cultural_Comfort5894")).toBe(true);
+      expect(isGeneratedUsername("Salty-Tomato5654")).toBe(true);
+      expect(isGeneratedUsername("Top-Nebula-8302")).toBe(true);
+      expect(isGeneratedUsername("Patient_Library_253")).toBe(true);
     });
 
     it("does not match legitimate usernames", () => {
