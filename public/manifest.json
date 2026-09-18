@@ -8,11 +8,14 @@
   ],
   "host_permissions": [
     "https://old.reddit.com/*",
-    "https://www.reddit.com/user/*/about.json"
+    "https://www.reddit.com/*"
   ],
   "content_scripts": [
     {
-      "matches": ["https://old.reddit.com/*"],
+      "matches": [
+        "https://old.reddit.com/*",
+        "https://www.reddit.com/*"
+      ],
       "js": ["content.js"],
       "run_at": "document_idle"
     }
