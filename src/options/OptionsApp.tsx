@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import {
   ExtensionSettings,
   DEFAULT_SETTINGS,
@@ -7,6 +7,7 @@ import {
 } from "@/models/settings";
 import { loadSettings, saveSettings } from "@/services/settingsService";
 import { applyTheme } from "@/utils/theme";
+import { SaveTracker } from "@/utils/saveTracker";
 import { Switch } from "@/components/ui/Switch";
 import { Select } from "@/components/ui/Select";
 import { Input } from "@/components/ui/Input";
@@ -32,6 +33,9 @@ export function OptionsApp() {
   const [settings, setSettings] = useState<ExtensionSettings>(DEFAULT_SETTINGS);
   const [loaded, setLoaded] = useState(false);
   const [thresholdError, setThresholdError] = useState<string | undefined>();
+
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const saveTracker = useMemo(() => new SaveTracker(setSaveStatus), []);
 
   useEffect(() => {
     loadSettings().then((s) => {
@@ -60,14 +64,16 @@ export function OptionsApp() {
     (updater: (prev: ExtensionSettings) => ExtensionSettings) => {
       setSettings((prev) => {
         const next = updater(prev);
-        saveSettings(next);
         if (prev.theme !== next.theme) {
           applyTheme(next.theme);
         }
+        
+        saveTracker.trackSave(saveSettings(next));
+          
         return next;
       });
     },
-    []
+    [saveTracker]
   );
 
   const handleThresholdChange = useCallback(
@@ -106,6 +112,8 @@ export function OptionsApp() {
       </div>
     );
   }
+
+  const isAgeFilterEnabled = settings.filters.accountAge.enabled;
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
@@ -203,7 +211,7 @@ export function OptionsApp() {
                   </p>
                 </div>
                 <Switch
-                  checked={settings.filters.accountAge.enabled}
+                  checked={isAgeFilterEnabled}
                   onCheckedChange={(checked) =>
                     updateSettings((prev) => ({
                       ...prev,
@@ -219,40 +227,40 @@ export function OptionsApp() {
                   aria-label="Toggle account age filter"
                 />
               </div>
-              {settings.filters.accountAge.enabled && (
-                <div className="mt-3 ml-0 flex items-center gap-2 text-sm text-gray-600 dark:text-slate-300">
-                  <span>Younger than</span>
-                  <Input
-                    type="number"
-                    min={1}
-                    max={MAX_THRESHOLD_VALUE}
-                    value={settings.filters.accountAge.threshold.value}
-                    onChange={(e) => handleThresholdChange(e.target.value)}
-                    error={thresholdError}
-                    aria-label="Age threshold value"
-                  />
-                  <Select
-                    value={settings.filters.accountAge.threshold.unit}
-                    onValueChange={(unit) =>
-                      updateSettings((prev) => ({
-                        ...prev,
-                        filters: {
-                          ...prev.filters,
-                          accountAge: {
-                            ...prev.filters.accountAge,
-                            threshold: {
-                              ...prev.filters.accountAge.threshold,
-                              unit: unit as TimeUnit,
-                            },
+              <div className="mt-3 ml-0 flex items-center gap-2 text-sm text-gray-600 dark:text-slate-300">
+                <span className={!isAgeFilterEnabled ? "opacity-50" : ""}>Younger than</span>
+                <Input
+                  type="number"
+                  min={1}
+                  max={MAX_THRESHOLD_VALUE}
+                  value={settings.filters.accountAge.threshold.value}
+                  onChange={(e) => handleThresholdChange(e.target.value)}
+                  error={thresholdError}
+                  disabled={!isAgeFilterEnabled}
+                  aria-label="Age threshold value"
+                />
+                <Select
+                  value={settings.filters.accountAge.threshold.unit}
+                  onValueChange={(unit) =>
+                    updateSettings((prev) => ({
+                      ...prev,
+                      filters: {
+                        ...prev.filters,
+                        accountAge: {
+                          ...prev.filters.accountAge,
+                          threshold: {
+                            ...prev.filters.accountAge.threshold,
+                            unit: unit as TimeUnit,
                           },
                         },
-                      }))
-                    }
-                    options={TIME_UNIT_OPTIONS}
-                    aria-label="Age threshold unit"
-                  />
-                </div>
-              )}
+                      },
+                    }))
+                  }
+                  options={TIME_UNIT_OPTIONS}
+                  disabled={!isAgeFilterEnabled}
+                  aria-label="Age threshold unit"
+                />
+              </div>
             </div>
 
             {/* Generated Username Filter */}
@@ -316,7 +324,13 @@ export function OptionsApp() {
         </CardContent>
       </Card>
 
-      <p className="mt-6 text-center text-xs text-gray-400 dark:text-slate-500">
+      <div className="mt-4 flex justify-end min-h-6 text-sm">
+        {saveStatus === "saving" && <span className="text-gray-500 dark:text-slate-400">Saving…</span>}
+        {saveStatus === "saved" && <span className="text-green-600 dark:text-green-500">✓ Saved</span>}
+        {saveStatus === "error" && <span className="text-red-500 dark:text-red-400">⚠ Couldn't save</span>}
+      </div>
+
+      <p className="mt-2 text-center text-xs text-gray-400 dark:text-slate-500">
         Declank v0.1.0
       </p>
     </div>
