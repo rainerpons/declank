@@ -6,7 +6,7 @@ describe("commentCollapser", () => {
       const comment = document.createElement("div");
       comment.className = "comment noncollapsed";
 
-      const result = collapseComment(comment, "test");
+      const result = collapseComment(comment, "testuser", "testfilter");
       expect(result).toBe(true);
       expect(comment.classList.contains("collapsed")).toBe(true);
       expect(comment.classList.contains("noncollapsed")).toBe(false);
@@ -16,7 +16,7 @@ describe("commentCollapser", () => {
       const comment = document.createElement("div");
       comment.className = "comment collapsed";
       
-      const result = collapseComment(comment, "test");
+      const result = collapseComment(comment, "testuser", "testfilter");
       expect(result).toBe(false);
     });
   });

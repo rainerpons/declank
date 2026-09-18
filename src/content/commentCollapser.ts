@@ -9,7 +9,8 @@ import { log } from "@/utils/logger";
  */
 export function collapseComment(
   comment: HTMLElement,
-  reason: string
+  username: string,
+  filterId: string
 ): boolean {
   // Don't re-collapse already collapsed comments
   if (comment.classList.contains("collapsed")) {
@@ -20,7 +21,7 @@ export function collapseComment(
   comment.classList.add("collapsed");
   comment.classList.remove("noncollapsed");
 
-  log(`Collapsed comment (${reason})`);
+  log(`Collapsed u/${username} (filter: ${filterId})`);
   return true;
 }
 

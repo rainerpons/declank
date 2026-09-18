@@ -10,18 +10,16 @@ async function main(): Promise<void> {
     return;
   }
 
-  console.log(`[Declank] Extension started on ${window.location.hostname}`);
-
   const isOldReddit = document.querySelector("#header-bottom-left") !== null;
   if (!isOldReddit) {
     return;
   }
 
+  console.log(`[Declank] Initialized on ${window.location.hostname}`);
+
   try {
     const settings = await loadSettings();
     setDebugEnabled(settings.debug);
-
-    log("Declank initialized");
 
     if (!settings.enabled) {
       log("Extension is disabled, skipping");

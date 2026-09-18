@@ -82,7 +82,7 @@ export async function scanCommentElements(
     let matched = false;
     for (const filter of localFilters) {
       if (filter.matches(context)) {
-        collapseComment(commentEl, `filter:${filter.id}`);
+        collapseComment(commentEl, context.username, filter.id);
         result.collapsedComments++;
         matched = true;
         break;
@@ -129,7 +129,7 @@ export async function scanCommentElements(
 
       const matchedFilter = evaluateComment(context, enabledFilters);
       if (matchedFilter) {
-        collapseComment(context.element, `filter:${matchedFilter}`);
+        collapseComment(context.element, context.username, matchedFilter);
         result.collapsedComments++;
       }
     }
